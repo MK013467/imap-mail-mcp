@@ -1,0 +1,29 @@
+{
+  "name": "imtpmail-gptmcp",
+  "version": "1.0.0",
+  "description": "mcp services that connects gpt with imtp mail services",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "author": "Minsok_Kwon",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.2",
+    "dev": "tsx watch src/index.ts",
+    "prettier": "^3.9.8",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "imapflow": "^2.0.5",
+    "zod": "^4.6.5"
+  }
+}
