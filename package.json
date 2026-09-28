@@ -7,6 +7,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "codex:register": "node scripts/register-codex.mjs",
+    "claude:register": "node scripts/register-claude.mjs",
     "test": "node --test",
     "mcp:dev": "tsx watch src/index.ts",
     "format": "prettier --write .",
