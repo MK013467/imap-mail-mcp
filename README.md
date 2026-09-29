@@ -6,12 +6,12 @@ This project provides a Codex MCP server for searching Naver, Daum, and Kakao Ma
 
 1. Download or clone this repository and run `npm ci`.
 2. In your mail provider's web settings, enable IMAP, enable two-step verification, and create an app password.
-3. Run `npm run setup` in a terminal. Choose Naver, Daum, or Kakao, then enter the mail address and app password once. Setup saves them to a local `.env` file, verifies the IMAP connection, and registers the MCP server with Codex.
-4. Restart Codex, then check `/mcp` for the `naver-mail` entry and its mail tools. The registration name is retained for compatibility; the server itself supports all three providers.
+3. Run `npm run setup` in a terminal. Choose Naver, Daum, or Kakao, then enter the mail address and app password once. Setup saves them to a local `.env` file, verifies the IMAP connection, detects Codex and Claude Code, and registers the MCP server with every installed client.
+4. Restart each registered client, then confirm the `naver-mail` entry and its mail tools are available. In Codex, check `/mcp`. The registration name is retained for compatibility; the server itself supports all three providers.
 
 Provider instructions: [Naver IMAP setup](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS), [Daum IMAP setup](https://cs.daum.net/faq/service/43/category/9234/detail/24081), and [Daum/Kakao app passwords](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671). These providers require an app password for IMAP access, so the local setup asks for it once.
 
-To add another account later, run `npm run setup -- --provider daum` or `npm run setup -- --provider kakao`. Existing account credentials are reused. Setup keeps the app password out of terminal output and stores `.env` with owner-only file permissions. You can inspect its planned registration without making changes using `npm run setup -- --dry-run`. If IMAP is temporarily unreachable, `npm run setup -- --skip-connection-test` registers without testing the connection.
+To add another account later, run `npm run setup -- --provider daum` or `npm run setup -- --provider kakao`. Existing account credentials are reused. Setup keeps the app password out of terminal output and stores `.env` with owner-only file permissions. Use `--client all` (the default), `--client codex`, or `--client claude` to choose registration targets. Existing matching registrations are skipped and changed registrations are updated. You can inspect the detected clients and planned registration without making changes using `npm run setup -- --dry-run`. If IMAP is temporarily unreachable, `npm run setup -- --skip-connection-test` registers without testing the connection.
 
 Registration uses absolute paths to this checkout. Keep the project at the same location after registering. `.env` is ignored by Git. The existing `NAVER_IMTP_PASSWORD` variable is still accepted for compatibility; new setups use `NAVER_IMAP_PASSWORD`.
 

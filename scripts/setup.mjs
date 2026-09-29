@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import { chmod, readFile, rename, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
@@ -6,8 +5,12 @@ import { stdin, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "dotenv";
 import { ImapFlow } from "imapflow";
+import {
+  detectClients,
+  registerClaude,
+  registerCodex,
+} from "./client-registration.mjs";
 
-const root = fileURLToPath(new URL("../", import.meta.url));
 const envPath = fileURLToPath(new URL("../.env", import.meta.url));
 const tsx = fileURLToPath(new URL("../node_modules/.bin/tsx", import.meta.url));
 const entry = fileURLToPath(new URL("../src/index.ts", import.meta.url));
@@ -21,6 +24,8 @@ const flags = new Set(process.argv.slice(2));
 const providerIndex = process.argv.indexOf("--provider");
 const specifiedProvider =
   providerIndex >= 0 ? process.argv[providerIndex + 1] : undefined;
+const clientIndex = process.argv.indexOf("--client");
+const selectedClient = clientIndex >= 0 ? process.argv[clientIndex + 1] : "all";
 const dryRun = flags.has("--dry-run");
 const skipConnectionTest = flags.has("--skip-connection-test");
 
@@ -32,15 +37,38 @@ function fail(message) {
 if (!existsSync(tsx)) fail("Dependencies are missing. Run npm install first.");
 if (providerIndex >= 0 && !specifiedProvider)
   fail("Pass naver, daum, or kakao after --provider.");
+if (clientIndex >= 0 && !process.argv[clientIndex + 1])
+  fail("Pass all, codex, or claude after --client.");
 if (specifiedProvider && !Object.hasOwn(providers, specifiedProvider)) {
   fail("Choose --provider naver, daum, or kakao.");
 }
+if (!["all", "codex", "claude"].includes(selectedClient)) {
+  fail("Choose --client all, codex, or claude.");
+}
 
-const args = ["mcp", "add", "naver-mail", "--", tsx, entry];
+const detected = detectClients();
+const requestedClients =
+  selectedClient === "all" ? ["codex", "claude"] : [selectedClient];
+const installedClients = requestedClients.filter((client) => detected[client]);
+
+if (selectedClient !== "all" && installedClients.length === 0) {
+  fail(`${clientLabel(selectedClient)} is not installed or is not on PATH.`);
+}
+if (selectedClient === "all" && installedClients.length === 0) {
+  fail("Neither Codex nor Claude Code is installed or available on PATH.");
+}
+
 if (dryRun) {
   console.log(
     JSON.stringify(
-      { command: "codex", args, envFile: envPath, changes: false },
+      {
+        selectedClient,
+        detected,
+        clientsToRegister: installedClients,
+        server: { name: "naver-mail", command: tsx, args: [entry] },
+        envFile: envPath,
+        changes: false,
+      },
       null,
       2,
     ),
@@ -123,11 +151,34 @@ if (!skipConnectionTest) {
   }
 }
 
-const result = spawnSync("codex", args, { stdio: "inherit", cwd: root });
-if (result.error) fail(`Could not run Codex CLI: ${result.error.message}`);
-if (result.status !== 0)
-  fail(`Codex MCP registration failed (exit ${result.status}).`);
-console.log("Setup complete. Restart Codex and check /mcp for naver-mail.");
+const registrationResults = [];
+try {
+  for (const client of installedClients) {
+    registrationResults.push(
+      client === "codex"
+        ? registerCodex({ tsx, entry })
+        : registerClaude({ tsx, entry }),
+    );
+  }
+} catch (error) {
+  fail(error.message);
+}
+
+for (const client of requestedClients) {
+  if (!detected[client]) {
+    registrationResults.push({
+      client: clientLabel(client),
+      status: "not installed",
+      detail: "skipped",
+    });
+  }
+}
+
+console.log("\nClient registration results:");
+for (const result of registrationResults) {
+  console.log(`- ${result.client}: ${result.status} (${result.detail})`);
+}
+console.log("Setup complete. Restart registered clients to load naver-mail.");
 
 async function saveEnv(contents, values) {
   let updated = contents;
@@ -172,4 +223,8 @@ function readSecret(label) {
     };
     stdin.on("data", onData);
   });
+}
+
+function clientLabel(client) {
+  return client === "codex" ? "Codex" : "Claude Code";
 }
