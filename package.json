@@ -9,6 +9,7 @@
     "codex:register": "node scripts/register-codex.mjs",
     "claude:register": "node scripts/register-claude.mjs",
     "test": "node --test",
+    "typecheck": "tsc --noEmit",
     "mcp:dev": "tsx watch src/index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
