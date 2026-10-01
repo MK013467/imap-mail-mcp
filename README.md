@@ -1,4 +1,8 @@
-# IMAP Mail MCP demo
+<p align="right">
+  <strong>English</strong> | <a href="README.ko.md">한국어</a>
+</p>
+
+# IMAP Mail MCP
 
 This project provides a Codex MCP server for searching Naver, Daum, and Kakao Mail over IMAP.
 

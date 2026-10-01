@@ -1,5 +1,5 @@
 {
-  "name": "imtpmail-gptmcp",
+  "name": "imap-mail-mcp",
   "version": "1.0.0",
   "description": "mcp services that connects gpt with imtp mail services",
   "main": "index.ts",
