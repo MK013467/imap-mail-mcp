@@ -1,16 +1,20 @@
+#!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import z from "zod";
 import { config } from "dotenv";
-import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { ImapMailClient } from "./mails/ImapMailClient.js";
 import { getImapAccount } from "./mails/accounts.js";
 import type { MailProvider } from "./mails/types.js";
 
-config({
-  path: fileURLToPath(new URL("../.env", import.meta.url)),
-  quiet: true,
-});
+const userEnvPath = join(homedir(), ".imap-mail-mcp", ".env");
+const envPath =
+  process.env.IMAP_MAIL_MCP_ENV_FILE ??
+  (existsSync(userEnvPath) ? userEnvPath : join(process.cwd(), ".env"));
+config({ path: envPath, quiet: true });
 
 const server = new McpServer({
   name: "mail-imap",

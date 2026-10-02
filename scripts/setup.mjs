@@ -1,5 +1,7 @@
-import { chmod, readFile, rename, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -11,9 +13,18 @@ import {
   registerCodex,
 } from "./client-registration.mjs";
 
-const envPath = fileURLToPath(new URL("../.env", import.meta.url));
+const legacyEnvPath = fileURLToPath(new URL("../.env", import.meta.url));
+const envPath =
+  process.env.IMAP_MAIL_MCP_ENV_FILE ??
+  join(homedir(), ".imap-mail-mcp", ".env");
 const tsx = fileURLToPath(new URL("../node_modules/.bin/tsx", import.meta.url));
 const entry = fileURLToPath(new URL("../src/index.ts", import.meta.url));
+const useNpxRegistration =
+  process.env.IMAP_MAIL_MCP_REGISTRATION_MODE === "npx";
+const serverCommand = useNpxRegistration ? "npx" : tsx;
+const serverArgs = useNpxRegistration
+  ? ["--yes", "imap-mail-mcp", "serve"]
+  : [entry];
 const providers = {
   naver: "imap.naver.com",
   daum: "imap.daum.net",
@@ -34,7 +45,8 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!existsSync(tsx)) fail("Dependencies are missing. Run npm install first.");
+if (!useNpxRegistration && !existsSync(tsx))
+  fail("Dependencies are missing. Run npm install first.");
 if (providerIndex >= 0 && !specifiedProvider)
   fail("Pass naver, daum, or kakao after --provider.");
 if (clientIndex >= 0 && !process.argv[clientIndex + 1])
@@ -65,7 +77,11 @@ if (dryRun) {
         selectedClient,
         detected,
         clientsToRegister: installedClients,
-        server: { name: "naver-mail", command: tsx, args: [entry] },
+        server: {
+          name: "naver-mail",
+          command: serverCommand,
+          args: serverArgs,
+        },
         envFile: envPath,
         changes: false,
       },
@@ -94,7 +110,14 @@ if (!Object.hasOwn(providers, provider)) fail("Choose naver, daum, or kakao.");
 const prefix = provider.toUpperCase();
 const emailKey = `${prefix}_EMAIL`;
 const passwordKey = `${prefix}_IMAP_PASSWORD`;
-const original = existsSync(envPath) ? await readFile(envPath, "utf8") : "";
+const sourceEnvPath = existsSync(envPath)
+  ? envPath
+  : existsSync(legacyEnvPath)
+    ? legacyEnvPath
+    : envPath;
+const original = existsSync(sourceEnvPath)
+  ? await readFile(sourceEnvPath, "utf8")
+  : "";
 const existing = parse(original);
 let email = existing[emailKey];
 let password =
@@ -120,10 +143,13 @@ if (!email || !password) {
   if (!password) password = await readSecret("App password (input hidden): ");
   if (!password) fail("App password cannot be empty.");
   await saveEnv(original, { [emailKey]: email, [passwordKey]: password });
-  console.log(`Saved ${provider} credentials to the local .env file.`);
+  console.log(`Saved ${provider} credentials to ${envPath}.`);
+} else if (sourceEnvPath !== envPath) {
+  await saveEnv(original, { [emailKey]: email, [passwordKey]: password });
+  console.log(`Migrated ${provider} credentials to ${envPath}.`);
 } else {
   await chmod(envPath, 0o600);
-  console.log(`Using existing ${provider} credentials in .env.`);
+  console.log(`Using existing ${provider} credentials in ${envPath}.`);
 }
 
 if (!skipConnectionTest) {
@@ -156,8 +182,8 @@ try {
   for (const client of installedClients) {
     registrationResults.push(
       client === "codex"
-        ? registerCodex({ tsx, entry })
-        : registerClaude({ tsx, entry }),
+        ? registerCodex({ command: serverCommand, args: serverArgs })
+        : registerClaude({ command: serverCommand, args: serverArgs }),
     );
   }
 } catch (error) {
@@ -189,6 +215,7 @@ async function saveEnv(contents, values) {
       ? updated.replace(pattern, line)
       : `${updated}${updated && !updated.endsWith("\n") ? "\n" : ""}${line}\n`;
   }
+  await mkdir(dirname(envPath), { recursive: true, mode: 0o700 });
   const temporary = `${envPath}.${process.pid}.tmp`;
   await writeFile(temporary, updated, { mode: 0o600 });
   await rename(temporary, envPath);

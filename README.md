@@ -6,11 +6,17 @@
 
 This project provides a Codex MCP server for searching Naver, Daum, and Kakao Mail over IMAP.
 
+### Requirements
+
+- Node.js 20 or later
+- IMAP enabled for your mail account
+- An app password for IMAP access
+
 ## Setup
 
 1. Download or clone this repository and run `npm ci`.
 2. In your mail provider's web settings, enable IMAP, enable two-step verification, and create an app password.
-3. Run `npm run setup` in a terminal. Choose Naver, Daum, or Kakao, then enter the mail address and app password once. Setup saves them to a local `.env` file, verifies the IMAP connection, detects Codex and Claude Code, and registers the MCP server with every installed client.
+3. Run `npm run setup:local` in a terminal. Choose Naver, Daum, or Kakao, then enter the mail address and app password once. Setup saves them to a local `.env` file, verifies the IMAP connection, detects Codex and Claude Code, and registers the MCP server with every installed client.
 4. Restart each registered client, then confirm the `naver-mail` entry and its mail tools are available. In Codex, check `/mcp`. The registration name is retained for compatibility; the server itself supports all three providers.
 
 Provider instructions: [Naver IMAP setup](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS), [Daum IMAP setup](https://cs.daum.net/faq/service/43/category/9234/detail/24081), and [Daum/Kakao app passwords](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671). These providers require an app password for IMAP access, so the local setup asks for it once.

@@ -11,9 +11,10 @@ Codex.
 
 1. Run `npm ci` in the project directory.
 2. Ask the user to enable IMAP and create an app password in their mail provider's settings.
-3. Have the user run `npm run setup` to store credentials and verify the IMAP
-   connection, then register the server: `npm run claude:register` for Claude
-   Code, `npm run codex:register` for Codex.
+3. Have the user run `npm run setup:local` to store credentials, verify the IMAP
+   connection, and register the server with their detected clients (Claude Code
+   and Codex). To target one client, use `npm run setup:local -- --client claude`
+   or `npm run setup:local -- --client codex`.
 4. Have the user restart their client and confirm the mail tools are listed.
 
 Never ask the user to paste an app password into chat, and never commit `.env`

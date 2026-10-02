@@ -17,7 +17,7 @@ export function detectClients() {
   };
 }
 
-export function registerCodex({ tsx, entry }) {
+export function registerCodex({ command, args }) {
   const current = spawnSync("codex", ["mcp", "get", serverName, "--json"], {
     encoding: "utf8",
   });
@@ -28,8 +28,8 @@ export function registerCodex({ tsx, entry }) {
       const transport = config.transport ?? {};
       if (
         transport.type === "stdio" &&
-        transport.command === tsx &&
-        sameArray(transport.args, [entry])
+        transport.command === command &&
+        sameArray(transport.args, args)
       ) {
         return {
           client: "Codex",
@@ -44,7 +44,7 @@ export function registerCodex({ tsx, entry }) {
     run("codex", ["mcp", "remove", serverName], "Codex MCP update failed");
     run(
       "codex",
-      ["mcp", "add", serverName, "--", tsx, entry],
+      ["mcp", "add", serverName, "--", command, ...args],
       "Codex MCP update failed",
     );
     return {
@@ -56,15 +56,15 @@ export function registerCodex({ tsx, entry }) {
 
   run(
     "codex",
-    ["mcp", "add", serverName, "--", tsx, entry],
+    ["mcp", "add", serverName, "--", command, ...args],
     "Codex MCP registration failed",
   );
   return { client: "Codex", status: "registered", detail: "new entry" };
 }
 
-export function registerClaude({ tsx, entry, home = homedir() }) {
+export function registerClaude({ command, args, home = homedir() }) {
   const configPath = join(home, ".claude.json");
-  const server = { type: "stdio", command: tsx, args: [entry], env: {} };
+  const server = { type: "stdio", command, args, env: {} };
   let config = {};
 
   if (existsSync(configPath)) {

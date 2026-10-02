@@ -2,17 +2,31 @@
   "name": "imap-mail-mcp",
   "version": "1.0.0",
   "description": "mcp services that connects gpt with imtp mail services",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "bin": {
+    "imap-mail-mcp": "bin/cli.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MK013467/imap-mail-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/MK013467/imap-mail-mcp"
+  },
+  "homepage": "https://github.com/MK013467/imap-mail-mcp/README.md",
   "scripts": {
-    "setup": "node scripts/setup.mjs",
-    "codex:register": "node scripts/register-codex.mjs",
-    "claude:register": "node scripts/register-claude.mjs",
+    "setup": "node bin/cli.mjs setup",
     "test": "node --test",
     "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "mcp:dev": "tsx watch src/index.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "setup:local": "node scripts/setup.mjs",
+    "pretest": "npm run build"
   },
   "author": "Minsok_Kwon",
   "license": "ISC",
@@ -32,5 +46,11 @@
     "imapflow": "^2.0.5",
     "mailparser": "^3.9.28",
     "zod": "^4.6.5"
-  }
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "scripts/",
+    "skills/"
+  ]
 }

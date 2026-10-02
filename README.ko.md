@@ -17,7 +17,7 @@ Naver, Daum, Kakao Mail을 IMAP으로 검색하고 조회할 수 있는 Codex �
 
 다른 계정을 나중에 추가하려면 `npm run setup -- --provider daum` 또는 `npm run setup -- --provider kakao`를 실행합니다. 기존 계정의 자격 증명은 재사용됩니다. setup은 앱 비밀번호를 터미널 출력에 표시하지 않으며 `.env`를 소유자 전용 권한으로 저장합니다. 등록 대상을 선택하려면 `--client all`(기본값), `--client codex`, `--client claude`를 사용합니다. 동일한 등록은 생략하고 설정이 달라진 등록은 갱신합니다. `npm run setup -- --dry-run`으로 파일이나 설정을 변경하지 않고 탐지 결과와 등록 계획을 확인할 수 있습니다. IMAP 서버에 일시적으로 접속할 수 없다면 `npm run setup -- --skip-connection-test`로 연결 검사만 생략할 수 있습니다.
 
-등록 설정에는 현재 checkout의 절대 경로가 저장됩니다. 등록 후에는 프로젝트 위치를 유지하세요. `.env`는 Git에서 제외됩니다. 이전 버전의 `NAVER_IMTP_PASSWORD` 환경 변수도 호환성을 위해 읽지만, 새로운 setup은 `NAVER_IMAP_PASSWORD`를 사용합니다.
+등록 설정에는 현재 checkout의 절대 경로가 저장되며 등록후에는 프로젝트 위치를 유지하여야합니다. `.env`는 Git에서 제외됩니다. 이전 버전의 `NAVER_IMTP_PASSWORD` 환경 변수도 호환성을 위해 읽지만, 새로운 setup은 `NAVER_IMAP_PASSWORD`를 사용합니다.
 
 ## 메일 검색
 
@@ -30,7 +30,8 @@ Naver, Daum, Kakao Mail을 IMAP으로 검색하고 조회할 수 있는 Codex �
 - `scope`: `inbox`(기본값) 또는 선택 가능한 모든 폴더를 뜻하는 `all`입니다.
 - `limit`: 1~100개의 결과를 반환합니다. 각 결과에는 메일을 식별하는 `provider`, `mailbox`, 폴더별 `uid`가 포함됩니다.
 
-`query` 또는 검색 조건을 하나 이상 전달해야 합니다. 예를 들어 `{ "query": "회의", "field": "subject", "from": "example@naver.com", "scope": "all" }`은 모든 폴더에서 제목에 `회의`가 들어가고 지정한 발신자가 보낸 메일을 검색합니다.
+`query` 또는 검색 조건을 하나 이상 전달해야 합니다.
+예를 들어 `{ "query": "회의", "field": "subject", "from": "example@naver.com", "scope": "all" }`은 모든 폴더에서 제목에 `회의`가 들어가고 지정한 발신자가 보낸 메일을 검색합니다.
 
 `get-latest-mail`도 `provider`를 받을 수 있으며 기본값은 Naver입니다. 사용할 계정마다 IMAP을 활성화하고, 제공자가 요구하는 경우 앱 비밀번호를 사용하세요.
 

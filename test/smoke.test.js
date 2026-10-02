@@ -71,12 +71,22 @@ before(async () => {
   tools = await listTools();
 });
 
-test("MCP 핸드셰이크를 마치고 툴을 노출한다", () => {
-  assert.ok(tools.length > 0, "툴이 하나도 없습니다.");
+test("MCP handshake and tools", () => {
+  assert.ok(tools.length > 0, "No tools in this server.");
 });
 
-test("메일 툴이 모두 등록되어 있다", () => {
+test("Mail tool registered", () => {
   for (const name of REQUIRED_TOOLS) {
-    assert.ok(tools.includes(name), `툴 누락: ${name}`);
+    assert.ok(tools.includes(name), `empty tools: ${name}`);
+  }
+});
+
+test("Build server display mcp", async () => {
+  const builtTools = await listTools("node", ["./dist/index.js"]);
+
+  assert.ok(builtTools.length > 0, "No tools in this server.");
+
+  for (const name of REQUIRED_TOOLS) {
+    assert.ok(builtTools.includes(name), `empty tools: ${name}`);
   }
 });

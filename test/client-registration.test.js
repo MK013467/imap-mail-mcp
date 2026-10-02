@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -23,7 +24,11 @@ if [ "$2" = "get" ]; then
 fi
 if [ "$2" = "remove" ]; then rm -f "$FAKE_CODEX_STATE"; exit 0; fi
 if [ "$2" = "add" ]; then
-  printf '{"name":"naver-mail","transport":{"type":"stdio","command":"%s","args":["%s"]}}' "$5" "$6" > "$FAKE_CODEX_STATE"
+  if [ "$5" = "npx" ]; then
+    printf '{"name":"naver-mail","transport":{"type":"stdio","command":"%s","args":["%s","%s","%s"]}}' "$5" "$6" "$7" "$8" > "$FAKE_CODEX_STATE"
+  else
+    printf '{"name":"naver-mail","transport":{"type":"stdio","command":"%s","args":["%s"]}}' "$5" "$6" > "$FAKE_CODEX_STATE"
+  fi
   exit 0
 fi
 exit 1
@@ -36,15 +41,21 @@ exit 1
   process.env.FAKE_CODEX_STATE = state;
   try {
     assert.equal(
-      registerCodex({ tsx: "/repo/tsx", entry: "/repo/index.ts" }).status,
+      registerCodex({
+        command: "npx",
+        args: ["--yes", "imap-mail-mcp", "serve"],
+      }).status,
       "registered",
     );
     assert.equal(
-      registerCodex({ tsx: "/repo/tsx", entry: "/repo/index.ts" }).status,
+      registerCodex({
+        command: "npx",
+        args: ["--yes", "imap-mail-mcp", "serve"],
+      }).status,
       "skipped",
     );
     assert.equal(
-      registerCodex({ tsx: "/new/tsx", entry: "/new/index.ts" }).status,
+      registerCodex({ command: "node", args: ["/new/index.js"] }).status,
       "updated",
     );
   } finally {
@@ -58,8 +69,8 @@ test("Claude registration creates, skips, and updates its MCP entry", () => {
   const configPath = join(home, ".claude.json");
 
   const created = registerClaude({
-    tsx: "/repo/tsx",
-    entry: "/repo/index.ts",
+    command: "npx",
+    args: ["--yes", "imap-mail-mcp", "serve"],
     home,
   });
   assert.equal(created.status, "registered");
@@ -67,15 +78,15 @@ test("Claude registration creates, skips, and updates its MCP entry", () => {
     JSON.parse(readFileSync(configPath, "utf8")).mcpServers["naver-mail"],
     {
       type: "stdio",
-      command: "/repo/tsx",
-      args: ["/repo/index.ts"],
+      command: "npx",
+      args: ["--yes", "imap-mail-mcp", "serve"],
       env: {},
     },
   );
 
   const skipped = registerClaude({
-    tsx: "/repo/tsx",
-    entry: "/repo/index.ts",
+    command: "npx",
+    args: ["--yes", "imap-mail-mcp", "serve"],
     home,
   });
   assert.equal(skipped.status, "skipped");
@@ -88,13 +99,27 @@ test("Claude registration creates, skips, and updates its MCP entry", () => {
     }),
   );
   const updated = registerClaude({
-    tsx: "/new/tsx",
-    entry: "/new/index.ts",
+    command: "node",
+    args: ["/new/index.js"],
     home,
   });
   assert.equal(updated.status, "updated");
   const config = JSON.parse(readFileSync(configPath, "utf8"));
   assert.equal(config.keep, true);
   assert.equal(config.mcpServers.existing.command, "other");
-  assert.equal(config.mcpServers["naver-mail"].command, "/new/tsx");
+  assert.equal(config.mcpServers["naver-mail"].command, "node");
+});
+
+test("CLI exposes help and version", () => {
+  const help = spawnSync(process.execPath, ["./bin/cli.mjs", "--help"], {
+    encoding: "utf8",
+  });
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /imap-mail-mcp setup/);
+
+  const version = spawnSync(process.execPath, ["./bin/cli.mjs", "--version"], {
+    encoding: "utf8",
+  });
+  assert.equal(version.status, 0);
+  assert.equal(version.stdout.trim(), "1.0.0");
 });
