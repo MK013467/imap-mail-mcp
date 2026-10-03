@@ -104,4 +104,5 @@ npm run build
 이전 변수명인 `NAVER_IMTP_PASSWORD`도 읽을 수 있습니다. 새 setup은 `NAVER_IMAP_PASSWORD`를 사용합니다. 계정 파일 위치를 바꾸려면 `IMAP_MAIL_MCP_ENV_FILE`을 설정하세요.
 
 ## 라이센스
+
 MIT
