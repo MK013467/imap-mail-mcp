@@ -1,7 +1,7 @@
 {
   "name": "imap-mail-mcp",
-  "version": "1.0.0",
-  "description": "mcp services that connects gpt with imtp mail services",
+  "version": "1.0.1",
+  "description": "Local MCP server for searching and reading Naver, Daum, and Kakao Mail over IMAP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",

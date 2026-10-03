@@ -140,7 +140,7 @@ if (!email || !password) {
   }
   if (!email?.includes("@") || /\s/.test(email))
     fail("Enter a valid email address.");
-  if (!password) password = await readSecret("App password (input hidden): ");
+  if (!password) password = await readSecret("App password: ");
   if (!password) fail("App password cannot be empty.");
   await saveEnv(original, { [emailKey]: email, [passwordKey]: password });
   console.log(`Saved ${provider} credentials to ${envPath}.`);
@@ -243,9 +243,15 @@ function readSecret(label) {
         if (character === "\r" || character === "\n") return finish();
         if (character === "\u0003")
           return finish(new Error("Setup cancelled."));
-        if (character === "\u007f" || character === "\b")
-          value = value.slice(0, -1);
-        else if (character >= " ") value += character;
+        if (character === "\u007f" || character === "\b") {
+          if (value.length > 0) {
+            value = value.slice(0, -1);
+            stdout.write("\b \b");
+          }
+        } else if (character >= " ") {
+          value += character;
+          stdout.write("*");
+        }
       }
     };
     stdin.on("data", onData);

@@ -117,9 +117,12 @@ test("CLI exposes help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /imap-mail-mcp setup/);
 
+  const { version: expectedVersion } = JSON.parse(
+    readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  );
   const version = spawnSync(process.execPath, ["./bin/cli.mjs", "--version"], {
     encoding: "utf8",
   });
   assert.equal(version.status, 0);
-  assert.equal(version.stdout.trim(), "1.0.0");
+  assert.equal(version.stdout.trim(), expectedVersion);
 });

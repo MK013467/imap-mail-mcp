@@ -13,7 +13,12 @@ export function isCommandAvailable(command) {
 export function detectClients() {
   return {
     codex: isCommandAvailable("codex"),
-    claude: isCommandAvailable("claude"),
+    // Claude Code registration edits ~/.claude.json directly and does not need
+    // the `claude` CLI, which the desktop app does not install on PATH. Treat
+    // an existing user config as a valid Claude Code installation.
+    claude:
+      isCommandAvailable("claude") ||
+      existsSync(join(homedir(), ".claude.json")),
   };
 }
 

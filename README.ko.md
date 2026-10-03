@@ -4,44 +4,104 @@
 
 # IMAP Mail MCP
 
-Naver, Daum, Kakao Mail을 IMAP으로 검색하고 조회할 수 있는 Codex 및 Claude Code용 로컬 MCP 서버입니다.
+[![npm version](https://img.shields.io/npm/v/imap-mail-mcp.svg)](https://www.npmjs.com/package/imap-mail-mcp)
+
+Naver, Daum, Kakao Mail을 지원하는 읽기 전용 MCP 서버입니다. Codex와 Claude Code에서 사용할 수 있습니다.
+
+## 도구
+
+| 도구               | 설명                                       |
+| ------------------ | ------------------------------------------ |
+| `search-mail`      | 키워드, 발신자, 수신자, 날짜로 검색합니다. |
+| `get-latest-mail`  | 가장 최근 메일을 가져옵니다.               |
+| `get-recent-mails` | 최근 메일 요약을 조회합니다.               |
+| `list-mailboxes`   | 사용할 수 있는 메일함을 조회합니다.        |
+| `read-mail`        | 메일함과 UID로 메일 한 건을 읽습니다.      |
+| `batch-read-mail`  | 같은 메일함에서 최대 10건을 읽습니다.      |
+
+모든 도구에서 `naver`, `daum`, `kakao`를 선택할 수 있습니다. 기본 제공자는 Naver입니다.
 
 ## 설치
 
-1. 이 저장소를 다운로드하거나 clone한 뒤 `npm ci`를 실행합니다.
-2. 메일 제공자의 웹 설정에서 IMAP과 2단계 인증을 활성화하고 앱 비밀번호를 생성합니다.
-3. 터미널에서 `npm run setup`을 실행합니다. Naver, Daum, Kakao 중 하나를 선택한 뒤 메일 주소와 앱 비밀번호를 한 번 입력합니다. setup은 자격 증명을 로컬 `.env`에 저장하고 IMAP 연결을 검증한 다음, Codex와 Claude Code를 탐지해 설치된 모든 클라이언트에 MCP 서버를 등록합니다.
-4. 등록된 클라이언트를 다시 시작하고 `naver-mail` 항목과 메일 도구가 표시되는지 확인합니다. Codex에서는 `/mcp`로 확인할 수 있습니다. 등록 이름은 호환성을 위해 유지되며 서버 자체는 세 제공자를 모두 지원합니다.
+요구 사항:
 
-제공자별 안내: [Naver IMAP 설정](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS), [Daum IMAP 설정](https://cs.daum.net/faq/service/43/category/9234/detail/24081), [Daum/Kakao 앱 비밀번호](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671). 이 제공자들은 IMAP 접속에 앱 비밀번호가 필요하므로 로컬 setup에서 한 번 입력받습니다.
+- Node.js 20 이상
+- 메일 계정의 IMAP 활성화
+- 앱 비밀번호
 
-다른 계정을 나중에 추가하려면 `npm run setup -- --provider daum` 또는 `npm run setup -- --provider kakao`를 실행합니다. 기존 계정의 자격 증명은 재사용됩니다. setup은 앱 비밀번호를 터미널 출력에 표시하지 않으며 `.env`를 소유자 전용 권한으로 저장합니다. 등록 대상을 선택하려면 `--client all`(기본값), `--client codex`, `--client claude`를 사용합니다. 동일한 등록은 생략하고 설정이 달라진 등록은 갱신합니다. `npm run setup -- --dry-run`으로 파일이나 설정을 변경하지 않고 탐지 결과와 등록 계획을 확인할 수 있습니다. IMAP 서버에 일시적으로 접속할 수 없다면 `npm run setup -- --skip-connection-test`로 연결 검사만 생략할 수 있습니다.
+제공자별 설정: [Naver](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS) · [Daum](https://cs.daum.net/faq/service/43/category/9234/detail/24081) · [Daum/Kakao 앱 비밀번호](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671)
 
-등록 설정에는 현재 checkout의 절대 경로가 저장되며 등록후에는 프로젝트 위치를 유지하여야합니다. `.env`는 Git에서 제외됩니다. 이전 버전의 `NAVER_IMTP_PASSWORD` 환경 변수도 호환성을 위해 읽지만, 새로운 setup은 `NAVER_IMAP_PASSWORD`를 사용합니다.
+실행:
 
-## 메일 검색
+```bash
+npx -y imap-mail-mcp setup
+```
 
-`search-mail` 도구는 일반 메일 검색창과 비슷하게 `query`를 받습니다. 기본적으로 Naver `INBOX`에서 메일 헤더와 본문을 검색하고 최신 요약을 최대 50개 반환합니다.
+메일 제공자, 주소, 앱 비밀번호를 입력합니다. 비밀번호는 `*`로 표시됩니다. 계정 정보는 `~/.imap-mail-mcp/.env`에 저장되며 파일 권한은 소유자 전용으로 설정됩니다.
 
-- `provider`: `naver`(기본값), `daum`, `kakao` 중 하나입니다. 선택한 계정이 `.env`에 설정되어 있어야 합니다.
-- `field`: `all`(기본값), `subject`, `from`, `to`, `body` 중 검색할 영역을 선택합니다.
-- `from`, `to`: 발신자와 수신자 조건을 추가합니다.
-- `since`, `before`: `YYYY-MM-DD` 형식의 수신 날짜 범위입니다. `before` 날짜는 포함하지 않습니다.
-- `scope`: `inbox`(기본값) 또는 선택 가능한 모든 폴더를 뜻하는 `all`입니다.
-- `limit`: 1~100개의 결과를 반환합니다. 각 결과에는 메일을 식별하는 `provider`, `mailbox`, 폴더별 `uid`가 포함됩니다.
+IMAP 연결을 확인한 뒤 Codex, Claude Code 또는 둘 다에 `naver-mail`을 등록합니다. 등록 후 클라이언트를 다시 시작하세요. Codex에서는 `/mcp`로 확인할 수 있습니다.
 
-`query` 또는 검색 조건을 하나 이상 전달해야 합니다.
-예를 들어 `{ "query": "회의", "field": "subject", "from": "example@naver.com", "scope": "all" }`은 모든 폴더에서 제목에 `회의`가 들어가고 지정한 발신자가 보낸 메일을 검색합니다.
+## 옵션
 
-`get-latest-mail`도 `provider`를 받을 수 있으며 기본값은 Naver입니다. 사용할 계정마다 IMAP을 활성화하고, 제공자가 요구하는 경우 앱 비밀번호를 사용하세요.
+| 옵션                              | 설명                                                |
+| --------------------------------- | --------------------------------------------------- |
+| `--provider <naver, daum, kakao>` | 제공자 하나를 설정합니다.                           |
+| `--client <all, codex, claude>`   | 등록할 클라이언트를 고릅니다. 기본값은 `all`입니다. |
+| `--dry-run`                       | 설정을 바꾸지 않고 등록 예정 내용을 출력합니다.     |
+| `--skip-connection-test`          | IMAP 연결 검사를 생략합니다.                        |
 
-## 메일 읽기
+다른 제공자 추가:
 
-모든 도구의 기본 계정은 Naver입니다. 검색 결과와 최근 메일 목록에는 `provider`, `mailbox`, `uid`가 포함되며, 특정 메일을 읽을 때 이 값을 사용합니다.
+```bash
+npx -y imap-mail-mcp setup --provider daum
+```
 
-- `get-recent-mails`: 지정한 메일함의 최신 요약을 최대 100개 반환합니다. 기본 메일함은 `INBOX`입니다.
-- `list-mailboxes`: 선택 가능한 메일함 경로를 반환합니다.
-- `read-mail`: `mailbox`와 `uid`로 메일 한 건을 읽고 발신자, 수신자, 본문, 첨부파일 메타데이터를 반환합니다.
-- `batch-read-mail`: 같은 메일함에서 최대 10개의 UID를 입력 순서대로 읽습니다. 찾을 수 없는 메일은 `null`로 반환됩니다.
+저장된 계정 정보는 재사용됩니다. 바꾸려면 `~/.imap-mail-mcp/.env`를 수정한 뒤 setup을 다시 실행하세요.
 
-읽기 도구는 첨부파일 내용 자체를 반환하지 않습니다. 10MB를 초과하는 메일은 읽기를 거부하며, 표시할 본문은 50,000자에서 잘라내고 `bodyTruncated`에 잘림 여부를 표시합니다.
+등록되는 서버 명령:
+
+```bash
+npx --yes imap-mail-mcp serve
+```
+
+`npx`에서 사용할 수 있는 최신 배포 버전을 실행합니다.
+
+## 동작 확인
+
+클라이언트를 다시 시작한 뒤 다음과 같이 요청합니다:
+
+```text
+네이버 메일함 목록을 보여줘.
+네이버 받은메일함의 최근 메일 3개를 보여줘.
+알고 있는 발신자의 메일을 검색하고 첫 번째 결과를 읽어줘.
+```
+
+## 개발
+
+```bash
+git clone https://github.com/MK013467/imap-mail-mcp.git
+cd imap-mail-mcp
+npm ci
+npm run setup:local
+```
+
+`setup:local`은 로컬 TypeScript 진입점을 절대 경로로 등록합니다. 등록 후에는 checkout 위치를 바꾸지 마세요.
+
+```bash
+npm test
+npm run typecheck
+npm run format:check
+npm run build
+```
+
+## 제한 사항
+
+- 메일 검색과 읽기만 지원합니다. 발송, 이동, 삭제는 지원하지 않습니다.
+- 첨부파일 메타데이터만 반환하며 파일 내용은 반환하지 않습니다.
+- 10MB를 초과하는 메일은 읽지 않습니다.
+- 본문은 50,000자까지 반환합니다.
+
+이전 변수명인 `NAVER_IMTP_PASSWORD`도 읽을 수 있습니다. 새 setup은 `NAVER_IMAP_PASSWORD`를 사용합니다. 계정 파일 위치를 바꾸려면 `IMAP_MAIL_MCP_ENV_FILE`을 설정하세요.
+
+## 라이센스
+MIT

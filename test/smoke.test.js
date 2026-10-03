@@ -85,7 +85,6 @@ test("Build server display mcp", async () => {
   const builtTools = await listTools("node", ["./dist/index.js"]);
 
   assert.ok(builtTools.length > 0, "No tools in this server.");
-
   for (const name of REQUIRED_TOOLS) {
     assert.ok(builtTools.includes(name), `empty tools: ${name}`);
   }

@@ -4,49 +4,101 @@
 
 # IMAP Mail MCP
 
-This project provides a Codex MCP server for searching Naver, Daum, and Kakao Mail over IMAP.
+[![npm version](https://img.shields.io/npm/v/imap-mail-mcp.svg)](https://www.npmjs.com/package/imap-mail-mcp)
 
-### Requirements
+Read-only MCP server for Naver, Daum, and Kakao Mail. Works with Codex and Claude Code.
+
+## Tools
+
+| Tool               | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| `search-mail`      | Search by keyword, sender, recipient, or date. |
+| `get-latest-mail`  | Get the newest message.                        |
+| `get-recent-mails` | List recent message summaries.                 |
+| `list-mailboxes`   | List available mailboxes.                      |
+| `read-mail`        | Read one message by mailbox and UID.           |
+| `batch-read-mail`  | Read up to 10 messages from the same mailbox.  |
+
+All tools support `naver`, `daum`, and `kakao`. Naver is the default provider.
+
+## Install
+
+Requirements:
 
 - Node.js 20 or later
-- IMAP enabled for your mail account
-- An app password for IMAP access
+- IMAP enabled for the mail account
+- An app password
 
-## Setup
+Provider setup guides: [Naver](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS) · [Daum](https://cs.daum.net/faq/service/43/category/9234/detail/24081) · [Daum/Kakao app passwords](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671)
 
-1. Download or clone this repository and run `npm ci`.
-2. In your mail provider's web settings, enable IMAP, enable two-step verification, and create an app password.
-3. Run `npm run setup:local` in a terminal. Choose Naver, Daum, or Kakao, then enter the mail address and app password once. Setup saves them to a local `.env` file, verifies the IMAP connection, detects Codex and Claude Code, and registers the MCP server with every installed client.
-4. Restart each registered client, then confirm the `naver-mail` entry and its mail tools are available. In Codex, check `/mcp`. The registration name is retained for compatibility; the server itself supports all three providers.
+Run:
 
-Provider instructions: [Naver IMAP setup](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS), [Daum IMAP setup](https://cs.daum.net/faq/service/43/category/9234/detail/24081), and [Daum/Kakao app passwords](https://cs.daum.net/m/faq/site/43/cat/9234/faq/33671). These providers require an app password for IMAP access, so the local setup asks for it once.
+```bash
+npx -y imap-mail-mcp setup
+```
 
-To add another account later, run `npm run setup -- --provider daum` or `npm run setup -- --provider kakao`. Existing account credentials are reused. Setup keeps the app password out of terminal output and stores `.env` with owner-only file permissions. Use `--client all` (the default), `--client codex`, or `--client claude` to choose registration targets. Existing matching registrations are skipped and changed registrations are updated. You can inspect the detected clients and planned registration without making changes using `npm run setup -- --dry-run`. If IMAP is temporarily unreachable, `npm run setup -- --skip-connection-test` registers without testing the connection.
+Setup asks for a provider, email address, and app password. Password input is masked with `*`. Credentials are stored in `~/.imap-mail-mcp/.env` with owner-only permissions.
 
-Registration uses absolute paths to this checkout. Keep the project at the same location after registering. `.env` is ignored by Git. The existing `NAVER_IMTP_PASSWORD` variable is still accepted for compatibility; new setups use `NAVER_IMAP_PASSWORD`.
+It then checks the IMAP connection and registers `naver-mail` with Codex, Claude Code, or both. Restart the client after setup. In Codex, check the registration with `/mcp`.
 
-## Search mail
+## Options
 
-The `search-mail` tool accepts a `query` like a mail search box. By default it searches message headers and body in the Naver `INBOX` and returns up to 50 newest summaries.
+| Option                            | Description                                      |
+| --------------------------------- | ------------------------------------------------ |
+| `--provider <naver, daum, kakao>` | Configure one provider.                          |
+| `--client <all, codex, claude>`   | Choose clients. Default: `all`.                  |
+| `--dry-run`                       | Print the registration plan without changing it. |
+| `--skip-connection-test`          | Skip the IMAP connection check.                  |
 
-- `provider`: `naver` (default), `daum`, or `kakao`. The selected account must be configured in `.env`.
-- `field`: `all` (default), `subject`, `from`, `to`, or `body` selects where `query` is matched.
-- `from` and `to`: additional sender and recipient filters.
-- `since` and `before`: received-date bounds in `YYYY-MM-DD`; `before` is exclusive.
-- `scope`: `inbox` (default) or `all` selectable folders.
-- `limit`: 1–100 results. Each result includes `provider`, `mailbox`, and the folder-specific `uid`.
+Add another provider:
 
-Supply a `query` or at least one filter. For example, search `{ "query": "회의", "field": "subject", "from": "example@naver.com", "scope": "all" }` for messages whose subject contains `회의` from that sender across folders.
+```bash
+npx -y imap-mail-mcp setup --provider daum
+```
 
-`get-latest-mail` also accepts `provider` and defaults to Naver. Enable IMAP for each account and use an app password where the mail provider requires one.
+Saved credentials are reused. To replace them, edit `~/.imap-mail-mcp/.env` and run setup again.
 
-## Read mail
+The registered server command is:
 
-All tools default to the Naver account. Search and recent-mail results include `provider`, `mailbox`, and `uid`; use those values to read a specific message.
+```bash
+npx --yes imap-mail-mcp serve
+```
 
-- `get-recent-mails`: return up to 100 newest summaries from a mailbox (`INBOX` by default).
-- `list-mailboxes`: list selectable mailbox paths.
-- `read-mail`: read one message by `mailbox` and `uid`, returning sender, recipients, body, and attachment metadata.
-- `batch-read-mail`: read up to 10 UIDs from one mailbox in input order. Missing messages appear as `null`.
+The command uses the latest published version available to `npx`.
 
-The read tools do not return attachment contents. They refuse messages larger than 10 MB and truncate displayed bodies after 50,000 characters, reporting truncation in `bodyTruncated`.
+## Check the setup
+
+After restarting the client, try:
+
+```text
+List my Naver mailboxes.
+Show the three most recent messages in my Naver inbox.
+Find mail from a sender I know, then read the first result.
+```
+
+## Development
+
+```bash
+git clone https://github.com/MK013467/imap-mail-mcp.git
+cd imap-mail-mcp
+npm ci
+npm run setup:local
+```
+
+`setup:local` registers the local TypeScript entry with absolute paths. Keep the checkout in the same location after registration.
+
+```bash
+npm test
+npm run typecheck
+npm run format:check
+npm run build
+```
+
+## Limits
+
+- The server can search and read mail. It cannot send, move, or delete messages.
+- Attachment metadata is returned, but attachment contents are not.
+- Messages larger than 10 MB are rejected.
+- Bodies longer than 50,000 characters are truncated.
+
+`NAVER_IMTP_PASSWORD` is accepted for compatibility. New setups use `NAVER_IMAP_PASSWORD`. Set `IMAP_MAIL_MCP_ENV_FILE` to use another credentials file.
