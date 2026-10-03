@@ -102,3 +102,7 @@ npm run build
 - Bodies longer than 50,000 characters are truncated.
 
 `NAVER_IMTP_PASSWORD` is accepted for compatibility. New setups use `NAVER_IMAP_PASSWORD`. Set `IMAP_MAIL_MCP_ENV_FILE` to use another credentials file.
+
+## License
+
+MIT

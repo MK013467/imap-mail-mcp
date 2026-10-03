@@ -102,3 +102,7 @@ npm run build
 - 본문 최대 50,000자 반환
 
 이전 변수명 `NAVER_IMTP_PASSWORD`도 지원. 새 setup은 `NAVER_IMAP_PASSWORD` 사용. 계정 파일 위치 변경 시 `IMAP_MAIL_MCP_ENV_FILE` 설정.
+
+## 라이선스
+
+MIT

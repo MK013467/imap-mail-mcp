@@ -10,12 +10,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MK013467/imap-mail-mcp"
+    "url": "git+https://github.com/MK013467/imap-mail-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/MK013467/imap-mail-mcp"
+    "url": "https://github.com/MK013467/imap-mail-mcp/issues"
   },
-  "homepage": "https://github.com/MK013467/imap-mail-mcp/README.md",
+  "homepage": "https://github.com/MK013467/imap-mail-mcp#readme",
   "scripts": {
     "setup": "node bin/cli.mjs setup",
     "test": "node --test",
@@ -28,8 +28,8 @@
     "setup:local": "node scripts/setup.mjs",
     "pretest": "npm run build"
   },
-  "author": "Minsok_Kwon",
-  "license": "ISC",
+  "author": "Minsok Kwon",
+  "license": "MIT",
   "devDependencies": {
     "@types/mailparser": "^3.4.6",
     "@types/node": "^26.6.2",
@@ -50,5 +50,20 @@
     "dist/",
     "scripts/",
     "skills/"
-  ]
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "imap",
+    "email",
+    "mail",
+    "naver",
+    "daum",
+    "kakao",
+    "codex",
+    "claude-code"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
 }
